@@ -169,7 +169,6 @@ in {
     };
   };
 }
-}
 ```
 
 ## Selecting a theme
