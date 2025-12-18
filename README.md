@@ -141,12 +141,17 @@ let
       owner = "keyitdev";
       repo = "sddm-astronaut-theme";
       rev = "master";
-      sha256 = "0000000000000000000000000000000000000000000000000000";  # Update this
+      sha256 = lib.fakeSha256;  # Replace with actual hash after first build
     };
     dontBuild = true;
     installPhase = ''
       mkdir -p $out/share/sddm/themes/sddm-astronaut-theme
-      cp -r * $out/share/sddm/themes/sddm-astronaut-theme/
+      
+      # Copy all theme files
+      cp -r Assets Backgrounds Components Previews Themes Main.qml metadata.desktop \
+        $out/share/sddm/themes/sddm-astronaut-theme/
+      
+      # Install fonts
       mkdir -p $out/share/fonts
       cp -r Fonts/* $out/share/fonts/
     '';
@@ -163,6 +168,7 @@ in {
       };
     };
   };
+}
 }
 ```
 
