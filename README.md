@@ -91,6 +91,86 @@ echo "[General]
 InputMethod=qtvirtualkeyboard" | sudo tee /etc/sddm.conf.d/virtualkbd.conf
 ```
 
+### NixOS Installation
+
+#### Using Flakes (Recommended)
+
+Add this theme to your NixOS configuration:
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    sddm-astronaut-theme = {
+      url = "github:keyitdev/sddm-astronaut-theme";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { nixpkgs, sddm-astronaut-theme, ... }: {
+    nixosConfigurations.yourHost = nixpkgs.lib.nixosSystem {
+      modules = [
+        sddm-astronaut-theme.nixosModules.default
+        {
+          services.displayManager.sddm = {
+            enable = true;
+            astronaut = {
+              enable = true;
+              variant = "astronaut";  # Choose from available variants
+            };
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+Available variants: `astronaut`, `black_hole`, `cyberpunk`, `hyprland_kath`, `jake_the_dog`, `japanese_aesthetic`, `pixel_sakura`, `pixel_sakura_static`, `post-apocalyptic_hacker`, `purple_leaves`
+
+#### Without Flakes
+
+Add to your `configuration.nix`:
+
+```nix
+{ pkgs, ... }:
+let
+  sddm-astronaut = pkgs.stdenv.mkDerivation {
+    name = "sddm-astronaut-theme";
+    src = pkgs.fetchFromGitHub {
+      owner = "keyitdev";
+      repo = "sddm-astronaut-theme";
+      rev = "master";
+      sha256 = lib.fakeSha256;  # Replace with actual hash after first build
+    };
+    dontBuild = true;
+    installPhase = ''
+      mkdir -p $out/share/sddm/themes/sddm-astronaut-theme
+      
+      # Copy all theme files
+      cp -r Assets Backgrounds Components Previews Themes Main.qml metadata.desktop \
+        $out/share/sddm/themes/sddm-astronaut-theme/
+      
+      # Install fonts
+      mkdir -p $out/share/fonts
+      cp -r Fonts/* $out/share/fonts/
+    '';
+  };
+in {
+  environment.systemPackages = [ sddm-astronaut ];
+  
+  services.displayManager.sddm = {
+    enable = true;
+    theme = "sddm-astronaut-theme";
+    settings = {
+      General = {
+        InputMethod = "qtvirtualkeyboard";
+      };
+    };
+  };
+}
+```
+
 ## Selecting a theme
 
 You can select theme by editing [metadata](./metadata.desktop) (`/usr/share/sddm/themes/sddm-astronaut-theme/metadata.desktop`).
